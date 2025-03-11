@@ -1,2 +1,0 @@
-# Galaga
-Galaga in Raylib

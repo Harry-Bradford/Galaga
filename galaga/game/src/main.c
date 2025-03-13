@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_STARS 100
+#define MAX_STARS 200
 #define STAR_YELLOW CLITERAL(Color){ 255, 250, 144, 255 }
 #define STAR_RED CLITERAL(Color){ 255, 59, 59, 255 }
 #define STAR_BLUE CLITERAL(Color){ 118, 130, 255, 255 }
@@ -13,7 +13,7 @@ typedef struct Star {
     Vector2 position;
     Color color;
     float blinkTime;
-    float blink;
+    bool blink;
 } Star;
 
 int main(void)
@@ -32,15 +32,23 @@ int main(void)
     const int starSpeed = 4;
     Star stars[MAX_STARS];
     Color colors[] = {STAR_RED, STAR_GREEN, STAR_BLUE, STAR_YELLOW};
+    stars[0].blinkTime = 0;
+    float lightPeriod = 0.6;
+    float blinkPeriod = 0.2;
     
-    // Generate starting locations and colors for each star
+    // Generate starting locations, colours, & blink settings for each star.
     for (int i = 0; i < MAX_STARS; i++)
+    {
+        stars[i].position = (Vector2){GetRandomValue(10, screenWidth-10), GetRandomValue(10, screenHeight-10)};
+        stars[i].color = colors[GetRandomValue(0, 3)];
+        stars[i].blink = false;
+        
+        // Each star has a different blink timing
+        if (i > 0)
         {
-            stars[i].position = (Vector2){GetRandomValue(10, screenWidth-10), GetRandomValue(10, screenHeight-10)};
-            stars[i].color = colors[GetRandomValue(0, 3)];
-            stars[i].blink = -1;
-            stars[i].blinkTime = 0;
+            stars[i].blinkTime = stars[i-1].blinkTime + 0.01;
         }
+    }
     
     //Texture2D shipTexture = LoadTexture("assets/");
     
@@ -61,7 +69,7 @@ int main(void)
                 // Stars in the background move downwards
                 stars[i].position.y += starSpeed;
                 
-                // If stars reach bottom of screen, start back at the top
+                // If stars reach bottom of screen, start back at the top with new position and colour (as if loading a new star)
                 if (stars[i].position.y >= screenHeight)
                 {
                     stars[i].position.y = 0;
@@ -70,19 +78,19 @@ int main(void)
                 }
             }
             
-            if (timeElapsed >= stars[i].blinkTime + 1 + (float)i/100)
+            // If 0.6 seconds has passed since star started shining, make star blink
+            if (timeElapsed >= stars[i].blinkTime + lightPeriod)
             {
                 stars[i].blinkTime = timeElapsed;
-                stars[i].blink *= -1.0f;
-            }
-            
-            if (stars[i].blink > 0)
-            {
-                stars[i].color.a = 255;
-            }
-            else
-            {
+                stars[i].blink = true;
                 stars[i].color.a = 0;
+            }
+
+            // If 0.2 seconds has passed since star started to blink, make star shine
+            else if (stars[i].blink && timeElapsed >= stars[i].blinkTime + blinkPeriod)
+            {
+                stars[i].blink = false;
+                stars[i].color.a = 255;
             }
         }
         

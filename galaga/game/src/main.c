@@ -4,11 +4,16 @@
 #include <stdlib.h>
 
 // Some defines
+#define SCREEN_WIDTH 768
+#define SCREEN_HEIGHT 1024
+
 #define MAX_STARS 200
 #define STAR_YELLOW CLITERAL(Color){ 255, 250, 144, 255 }
 #define STAR_RED CLITERAL(Color){ 255, 59, 59, 255 }
 #define STAR_BLUE CLITERAL(Color){ 118, 130, 255, 255 }
 #define STAR_GREEN CLITERAL(Color){ 118, 255, 118, 255 }
+
+#define SHIP_START_POS 900
 
 // Structs
 typedef struct Star {
@@ -19,9 +24,6 @@ typedef struct Star {
 } Star;
 
 // Global variables declaration
-const int screenWidth = 768;
-const int screenHeight = 1024;
-
 const int starRadius = 2;
 const int starSpeed = 4;
 const float lightPeriod = 0.6;
@@ -29,6 +31,11 @@ const float blinkPeriod = 0.2;
 
 Star stars[MAX_STARS];
 Color colors[] = {STAR_RED, STAR_GREEN, STAR_BLUE, STAR_YELLOW};
+
+int shipX = SCREEN_WIDTH/2;
+int shipY = SHIP_START_POS;
+int shipVelocity;
+const float shipAcceleration = 2;
 
 static bool gameOver = false;
 static bool pause = false;
@@ -40,31 +47,55 @@ static void DrawStars(void);
 
 int main(void)
 {
-    InitWindow(screenWidth, screenHeight, "Galaga by Harry Bradford");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Galaga by Harry Bradford");
 
     // Set our game to run at 60 frames-per-second
     SetTargetFPS(60);
     
     InitStars();
-    
+
     Texture2D whiteShip = LoadTexture("resources/ship-white/white-ship1.png");
-    Rectangle shipRectSource = {0, 0, 10, 10};
-    Rectangle shipRectSource = {0, 0, 10, 10};
+
+    Rectangle textureRect = {0, 0, whiteShip.width, whiteShip.height};
+    Vector2 origin = {whiteShip.width/2, whiteShip.height/2};
     
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    // Detect window close button or ESC key
+    while (!WindowShouldClose())
     {   
+        float dt = GetFrameTime();
+
         BeginDrawing();
         
         ClearBackground(BLACK);
 
         DrawStars();
 
-        DrawTexturePro(whiteShip, shipRectsource, carRect, {5, 5}, 0, WHITE);
+        if (IsKeyDown(KEY_LEFT))
+        {
+            shipVelocity -= shipAcceleration * dt;
+        }
+        else if (IsKeyDown(KEY_RIGHT))
+        {
+            shipVelocity += shipAcceleration * dt;
+        }
+        else
+        {
+            shipVelocity = 0;
+        }
+
+        shipX -= shipVelocity;
+
+        Rectangle shipRectDest = {shipX, shipY, whiteShip.width, whiteShip.height};
+
+        DrawTexturePro(whiteShip, textureRect, shipRectDest, origin, 0, WHITE);
 
         EndDrawing();
     }
+
+    UnloadTexture(whiteShip);
     
-    CloseWindow();        // Close window and OpenGL context
+    // Close window and OpenGL context
+    CloseWindow();
 
     return 0;
 }
@@ -77,7 +108,7 @@ void InitStars(void)
     
     for (int i = 0; i < MAX_STARS; i++)
     {
-        stars[i].position = (Vector2){GetRandomValue(10, screenWidth-10), GetRandomValue(10, screenHeight-10)};
+        stars[i].position = (Vector2){GetRandomValue(10, SCREEN_WIDTH-10), GetRandomValue(10, SCREEN_HEIGHT-10)};
         stars[i].color = colors[GetRandomValue(0, 3)];
         stars[i].blink = false;
         
@@ -103,11 +134,11 @@ void DrawStars()
         // Stars in the background move downwards
         stars[i].position.y += starSpeed;
         
-        // If stars reach bottom of screen, start back at the top with new position and colour (as if loading a new star)
-        if (stars[i].position.y >= screenHeight)
+        // If stars reach bottom of screen, start back at the top with new position and colour
+        if (stars[i].position.y >= SCREEN_HEIGHT)
         {
             stars[i].position.y = 0;
-            stars[i].position.x = GetRandomValue(0, screenWidth);
+            stars[i].position.x = GetRandomValue(0, SCREEN_WIDTH);
             stars[i].color = colors[GetRandomValue(0, 3)];
         }
         

@@ -25,7 +25,7 @@ typedef struct Star {
 
 // Global variables declaration
 const int starRadius = 2;
-const int starSpeed = 4;
+const int starSpeed = 100;
 const float lightPeriod = 0.6;
 const float blinkPeriod = 0.2;
 
@@ -34,7 +34,7 @@ Color colors[] = {STAR_RED, STAR_GREEN, STAR_BLUE, STAR_YELLOW};
 
 int shipX = SCREEN_WIDTH/2;
 int shipY = SHIP_START_POS;
-int shipVelocity;
+float shipVelocity;
 const float shipAcceleration = 2;
 
 static bool gameOver = false;
@@ -73,21 +73,26 @@ int main(void)
         if (IsKeyDown(KEY_LEFT))
         {
             shipVelocity -= shipAcceleration * dt;
+            DrawText(TextFormat("left"), 360, 160, 20, WHITE);
         }
         else if (IsKeyDown(KEY_RIGHT))
         {
             shipVelocity += shipAcceleration * dt;
+            DrawText(TextFormat("right"), 360, 160, 20, WHITE);
         }
         else
         {
             shipVelocity = 0;
         }
 
-        shipX -= shipVelocity;
+        shipX += shipVelocity;
 
-        Rectangle shipRectDest = {shipX, shipY, whiteShip.width, whiteShip.height};
+        Rectangle shipRectDest = {shipX, shipY, whiteShip.width*2, whiteShip.height*2};
 
         DrawTexturePro(whiteShip, textureRect, shipRectDest, origin, 0, WHITE);
+
+        DrawText(TextFormat("%d", shipX), 460, 160, 20, YELLOW);
+        DrawText(TextFormat("%d", shipY), 420, 160, 20, YELLOW);
 
         EndDrawing();
     }
@@ -124,6 +129,7 @@ void InitStars(void)
 void DrawStars()
 {
     float timeElapsed = GetTime();
+    float dt = GetFrameTime();
 
     for (int i = 0; i < MAX_STARS; i++)
     {
@@ -132,7 +138,7 @@ void DrawStars()
         DrawCircleV(stars[i].position, starRadius, stars[i].color);
         
         // Stars in the background move downwards
-        stars[i].position.y += starSpeed;
+        stars[i].position.y += starSpeed * dt;
         
         // If stars reach bottom of screen, start back at the top with new position and colour
         if (stars[i].position.y >= SCREEN_HEIGHT)

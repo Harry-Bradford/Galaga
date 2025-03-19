@@ -25,24 +25,24 @@ typedef struct Star {
 
 // Global variables declaration
 const int starRadius = 2;
-const int starSpeed = 100;
+const int starSpeed = 300;
 const float lightPeriod = 0.6;
 const float blinkPeriod = 0.2;
 
 Star stars[MAX_STARS];
 Color colors[] = {STAR_RED, STAR_GREEN, STAR_BLUE, STAR_YELLOW};
 
-int shipX = SCREEN_WIDTH/2;
-int shipY = SHIP_START_POS;
-float shipVelocity;
-const float shipAcceleration = 2;
+float shipX = SCREEN_WIDTH/2;
+float shipY = SHIP_START_POS;
+const float shipVelocity = 200;
 
 static bool gameOver = false;
 static bool pause = false;
 
 // prototypes
 static void InitStars(void);
-static void DrawStars(void);
+static void DrawStars(timeElapsed, dt);
+static void updateShip(dt);
 
 
 int main(void)
@@ -62,37 +62,16 @@ int main(void)
     // Detect window close button or ESC key
     while (!WindowShouldClose())
     {   
+        float timeElapsed = GetTime();
         float dt = GetFrameTime();
 
         BeginDrawing();
         
         ClearBackground(BLACK);
 
-        DrawStars();
+        DrawStars(timeElapsed, dt);
 
-        if (IsKeyDown(KEY_LEFT))
-        {
-            shipVelocity -= shipAcceleration * dt;
-            DrawText(TextFormat("left"), 360, 160, 20, WHITE);
-        }
-        else if (IsKeyDown(KEY_RIGHT))
-        {
-            shipVelocity += shipAcceleration * dt;
-            DrawText(TextFormat("right"), 360, 160, 20, WHITE);
-        }
-        else
-        {
-            shipVelocity = 0;
-        }
-
-        shipX += shipVelocity;
-
-        Rectangle shipRectDest = {shipX, shipY, whiteShip.width*2, whiteShip.height*2};
-
-        DrawTexturePro(whiteShip, textureRect, shipRectDest, origin, 0, WHITE);
-
-        DrawText(TextFormat("%d", shipX), 460, 160, 20, YELLOW);
-        DrawText(TextFormat("%d", shipY), 420, 160, 20, YELLOW);
+        updateShip(dt);
 
         EndDrawing();
     }
@@ -126,14 +105,10 @@ void InitStars(void)
 }
 
 
-void DrawStars()
+void DrawStars(timeElapsed, dt)
 {
-    float timeElapsed = GetTime();
-    float dt = GetFrameTime();
-
     for (int i = 0; i < MAX_STARS; i++)
     {
-        
         // Draw the stars with prev generated locations/colours
         DrawCircleV(stars[i].position, starRadius, stars[i].color);
         
@@ -163,4 +138,21 @@ void DrawStars()
             stars[i].color.a = 255;
         }
     }
+}
+
+
+void updateShip(dt)
+{
+    if (IsKeyDown(KEY_RIGHT))
+        {
+            shipX += shipVelocity * dt;
+        }
+        else if (IsKeyDown(KEY_LEFT))
+        {
+            shipX -= shipVelocity * dt;
+        }
+
+        Rectangle shipRectDest = {shipX, shipY, whiteShip.width*2, whiteShip.height*2};m
+
+        DrawTexturePro(whiteShip, textureRect, shipRectDest, origin, 0, WHITE);
 }
